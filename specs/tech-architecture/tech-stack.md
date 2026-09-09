@@ -10,8 +10,8 @@
 
 ## Architecture
 
-- **Entry points:** Three registered commands (`pi.registerCommand`): `/termux` → `openPanel` (interactive menu loop), `/battery`, `/location` (network provider only).
-- **Data flow:** Command handler → `ctx: any` → typed `Ctx` cast → `run(termux-*)` → `safeParseJSON`/`fmtJson` → `showLines(ctx, title, lines)` → `ctx.ui.select` menu (≤50 lines + `← Back`). Errors funneled through `withErrors` → `apiError` → `ctx.ui.notify(msg, "error")`.
+- **Entry points:** Three registered commands (`pi.registerCommand`): `/termux` → `openPanel` (interactive menu loop), `/battery`, `/location` (network provider). **Agent tool** (`pi.registerTool`): `termux_read` with fields `battery`|`location` and an optional `provider` (network|gps|passive, defaults to network); headless-safe (no `ctx.ui`) and reads-only — see `termux-panel.ts` `execute`.
+- **Data flow:** Command handler → `ctx: any` → typed `Ctx` cast → `run(termux-*)` → `safeParseJSON`/`fmtJson` → `showLines(ctx, title, lines)` → `ctx.ui.select` menu (≤50 lines + `← Back`). Errors funneled through `withErrors` → `apiError` → `ctx.ui.notify(msg, "error")`. `termux_read` tool bypasses the UI layer: `execute` → `batteryText`/`locationText` → plain-text result (no `ctx.ui`, no `withErrors`).
 - **Pattern:** Single exported factory `default function (pi: ExtensionAPI)`. Internal helpers (`run`, `termuxJson`, `fmtJson`, `safeParseJSON`, `showLines`, `apiError`, `withErrors`) are module-private. Menu built from `ACTIONS: Action[]` array (id + label + `run(ctx)`); dispatch is `Map(label → Action)`.
 - **Business logic vs I/O:** Logic is minimal/edge (timeout selection, provider selection, `Promise.all` for device overview); all real work is I/O to `termux-*` CLIs. No service/repo layering — flat functional module.
 
