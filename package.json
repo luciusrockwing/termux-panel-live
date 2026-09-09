@@ -1,7 +1,32 @@
 {
   "name": "termux-panel-live",
   "version": "1.0.0",
-  "private": true,
+  "description": "Termux device panel extension for Pi",
   "type": "module",
-  "scripts": { "build": "tsc --noEmit" }
+  "main": "termux-panel.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciusrockwing/termux-panel-live.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "files": [
+    "termux-panel.ts",
+    "pi-types.d.ts",
+    "README.md",
+    "plans/",
+    "specs/"
+  ],
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "termux"
+  ],
+  "pi": {
+    "extensions": [
+      "./termux-panel.ts"
+    ]
+  }
 }
