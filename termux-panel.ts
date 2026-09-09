@@ -53,6 +53,7 @@ function showLines(ctx: any, title: string, lines: string[]): Promise<void> {
   const items = lines.length > 0 ? lines : ["(no output)"];
   const view = items.slice(0, CONFIG.maxLines);
   view.push("← Back");
+  if (!ctx?.ui) return Promise.resolve();
   return ctx.ui.select(title, view);
 }
 
@@ -76,7 +77,7 @@ async function withErrors(ctx: any, fn: () => Promise<void>): Promise<void> {
   try {
     await fn();
   } catch (e: any) {
-    ctx.ui.notify(apiError(e), "error");
+    ctx.ui?.notify?.(apiError(e), "error");
   }
 }
 
@@ -90,6 +91,10 @@ interface Ctx {
   mode: string;
   hasUI: boolean;
   ui: Ui;
+}
+
+function uiAlive(ctx: any): boolean {
+  return !!ctx?.ui && (ctx.mode === "tui" || !!ctx.hasUI);
 }
 
 // Pure text readers (no UI) — reused by agent tool + slash commands.
@@ -239,8 +244,8 @@ const labelToId = new Map(ACTIONS.map((a) => [a.label, a.id]));
 const actionById = new Map(ACTIONS.map((a) => [a.id, a]));
 
 async function openPanel(ctx: any): Promise<void> {
-  if (ctx.mode !== "tui" && !ctx.hasUI) {
-    ctx.ui.notify("Panel needs interactive mode", "warning");
+  if (!uiAlive(ctx)) {
+    if (ctx?.ui) ctx.ui.notify("Panel needs interactive mode", "warning");
     return;
   }
   for (;;) {
@@ -265,6 +270,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("battery", {
     description: "Show battery status",
     handler: async (_args, ctx) => {
+      if (!uiAlive(ctx)) return;
       await withErrors(ctx, async () => {
         await showBattery(ctx as Ctx);
       });
@@ -274,6 +280,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("location", {
     description: "Show current location (network provider)",
     handler: async (_args, ctx) => {
+      if (!uiAlive(ctx)) return;
       await withErrors(ctx, async () => {
         const lines = await locationText("network");
         await showLines(ctx, "Location", lines);
