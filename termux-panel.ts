@@ -60,10 +60,14 @@ const ERR_MISSING = /not found|ENOENT/i;
 const ERR_TIMEOUT = /timed out|timeout/i;
 const ERR_PERMISSION = /permission|denied/i;
 
+function isTimeout(e: any): boolean {
+  return e?.killed === true || e?.code === "ETIMEDOUT" || ERR_TIMEOUT.test(e?.message ?? String(e));
+}
+
 function apiError(e: any): string {
   const msg = e?.message ?? String(e);
   if (ERR_MISSING.test(msg)) return "termux-api missing. Run: pkg install termux-api + install Termux:API app";
-  if (ERR_TIMEOUT.test(msg)) return "Timed out (location/GPS needs sky view + permission)";
+  if (isTimeout(e)) return "Timed out (location/GPS needs sky view + permission)";
   if (ERR_PERMISSION.test(msg)) return "Permission denied. Grant in Android settings / run termux-setup-storage";
   return msg;
 }
