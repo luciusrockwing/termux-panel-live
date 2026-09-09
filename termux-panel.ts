@@ -12,6 +12,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { existsSync } from "node:fs";
 
 const execFileAsync = promisify(execFile);
 
@@ -37,6 +38,7 @@ async function termuxJson(cmd: string, args: string[] = [], timeout: number = CO
 }
 
 function fmtJson(obj: unknown): string[] {
+  if (Array.isArray(obj)) return obj.map((el) => (el && typeof el === "object" ? JSON.stringify(el) : String(el)));
   if (obj && typeof obj === "object") {
     return Object.entries(obj as Record<string, unknown>).map(
       ([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`,
@@ -180,7 +182,7 @@ const ACTIONS: Action[] = [
     run: async (ctx) => {
       const p = `${CONFIG.photoDir}/termux_${Date.now()}.jpg`;
       await run("termux-camera-photo", ["-c", CONFIG.cameraId, p]);
-      ctx.ui.notify(`Saved: ${p}`, "info");
+      if (existsSync(p)) ctx.ui.notify(`Saved: ${p}`, "info"); else ctx.ui.notify("Capture failed (storage permission? run termux-setup-storage)", "error");
     },
   },
   {
@@ -240,8 +242,7 @@ const ACTIONS: Action[] = [
   },
 ];
 
-const labelToId = new Map(ACTIONS.map((a) => [a.label, a.id]));
-const actionById = new Map(ACTIONS.map((a) => [a.id, a]));
+const actionByLabel = new Map(ACTIONS.map((a) => [a.label, a]));
 
 async function openPanel(ctx: any): Promise<void> {
   if (!uiAlive(ctx)) {
@@ -251,9 +252,7 @@ async function openPanel(ctx: any): Promise<void> {
   for (;;) {
     const pick: string | undefined = await ctx.ui.select("📱 Termux Panel (Esc exits)", ACTIONS.map((a) => a.label));
     if (!pick) return;
-    const id = labelToId.get(pick);
-    if (!id) continue;
-    const act = actionById.get(id);
+    const act = actionByLabel.get(pick);
     if (!act) continue;
     await withErrors(ctx, () => act.run(ctx as Ctx));
   }
