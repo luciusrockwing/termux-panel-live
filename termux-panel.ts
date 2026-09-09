@@ -12,6 +12,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { existsSync } from "node:fs";
 
 const execFileAsync = promisify(execFile);
 
@@ -37,6 +38,7 @@ async function termuxJson(cmd: string, args: string[] = [], timeout: number = CO
 }
 
 function fmtJson(obj: unknown): string[] {
+  if (Array.isArray(obj)) return obj.map((el) => (el && typeof el === "object" ? JSON.stringify(el) : String(el)));
   if (obj && typeof obj === "object") {
     return Object.entries(obj as Record<string, unknown>).map(
       ([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`,
@@ -53,6 +55,7 @@ function showLines(ctx: any, title: string, lines: string[]): Promise<void> {
   const items = lines.length > 0 ? lines : ["(no output)"];
   const view = items.slice(0, CONFIG.maxLines);
   view.push("← Back");
+  if (!ctx?.ui) return Promise.resolve();
   return ctx.ui.select(title, view);
 }
 
@@ -60,10 +63,14 @@ const ERR_MISSING = /not found|ENOENT/i;
 const ERR_TIMEOUT = /timed out|timeout/i;
 const ERR_PERMISSION = /permission|denied/i;
 
+function isTimeout(e: any): boolean {
+  return e?.killed === true || e?.code === "ETIMEDOUT" || ERR_TIMEOUT.test(e?.message ?? String(e));
+}
+
 function apiError(e: any): string {
   const msg = e?.message ?? String(e);
   if (ERR_MISSING.test(msg)) return "termux-api missing. Run: pkg install termux-api + install Termux:API app";
-  if (ERR_TIMEOUT.test(msg)) return "Timed out (location/GPS needs sky view + permission)";
+  if (isTimeout(e)) return "Timed out (location/GPS needs sky view + permission)";
   if (ERR_PERMISSION.test(msg)) return "Permission denied. Grant in Android settings / run termux-setup-storage";
   return msg;
 }
@@ -72,7 +79,7 @@ async function withErrors(ctx: any, fn: () => Promise<void>): Promise<void> {
   try {
     await fn();
   } catch (e: any) {
-    ctx.ui.notify(apiError(e), "error");
+    ctx.ui?.notify?.(apiError(e), "error");
   }
 }
 
@@ -86,6 +93,10 @@ interface Ctx {
   mode: string;
   hasUI: boolean;
   ui: Ui;
+}
+
+function uiAlive(ctx: any): boolean {
+  return !!ctx?.ui && (ctx.mode === "tui" || !!ctx.hasUI);
 }
 
 // Pure text readers (no UI) — reused by agent tool + slash commands.
@@ -171,7 +182,7 @@ const ACTIONS: Action[] = [
     run: async (ctx) => {
       const p = `${CONFIG.photoDir}/termux_${Date.now()}.jpg`;
       await run("termux-camera-photo", ["-c", CONFIG.cameraId, p]);
-      ctx.ui.notify(`Saved: ${p}`, "info");
+      if (existsSync(p)) ctx.ui.notify(`Saved: ${p}`, "info"); else ctx.ui.notify("Capture failed (storage permission? run termux-setup-storage)", "error");
     },
   },
   {
@@ -231,20 +242,17 @@ const ACTIONS: Action[] = [
   },
 ];
 
-const labelToId = new Map(ACTIONS.map((a) => [a.label, a.id]));
-const actionById = new Map(ACTIONS.map((a) => [a.id, a]));
+const actionByLabel = new Map(ACTIONS.map((a) => [a.label, a]));
 
 async function openPanel(ctx: any): Promise<void> {
-  if (ctx.mode !== "tui" && !ctx.hasUI) {
-    ctx.ui.notify("Panel needs interactive mode", "warning");
+  if (!uiAlive(ctx)) {
+    if (ctx?.ui) ctx.ui.notify("Panel needs interactive mode", "warning");
     return;
   }
   for (;;) {
     const pick: string | undefined = await ctx.ui.select("📱 Termux Panel (Esc exits)", ACTIONS.map((a) => a.label));
     if (!pick) return;
-    const id = labelToId.get(pick);
-    if (!id) continue;
-    const act = actionById.get(id);
+    const act = actionByLabel.get(pick);
     if (!act) continue;
     await withErrors(ctx, () => act.run(ctx as Ctx));
   }
@@ -261,6 +269,7 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("battery", {
     description: "Show battery status",
     handler: async (_args, ctx) => {
+      if (!uiAlive(ctx)) return;
       await withErrors(ctx, async () => {
         await showBattery(ctx as Ctx);
       });
@@ -268,18 +277,19 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("location", {
-    description: "Show current location (network provider)",
-    handler: async (_args, ctx) => {
+    description: "Show location (optional provider: network | gps | passive; default network)",
+    handler: async (args, ctx) => {
+      if (!uiAlive(ctx)) return;
       await withErrors(ctx, async () => {
-        const lines = await locationText("network");
-        await showLines(ctx, "Location", lines);
+        const prov = ["network", "gps", "passive"].includes(args.trim()) ? args.trim() : "network";
+        const lines = await locationText(prov, prov === "gps" ? CONFIG.gpsTimeoutMs : CONFIG.timeoutMs);
+        await showLines(ctx, `Location (${prov})`, lines);
       });
     },
   });
 
   // Agent-callable read tool: headless-safe (no ctx.ui), reads only.
-  // Cast: type-lens ExtensionAPI shim lacks registerTool (see pi-types.d.ts).
-  (pi as any).registerTool({
+  pi.registerTool({
     name: "termux_read",
     description: "Read device info via Termux:API — no side effects, safe to call when the user is not present. Returns plain text lines.",
     parameters: {

@@ -10,5 +10,11 @@ declare module "@earendil-works/pi-coding-agent" {
       description?: string;
       handler: (args: string, ctx: any) => void | Promise<void>;
     }): void;
+    registerTool(tool: {
+      name: string;
+      description?: string;
+      parameters?: unknown;
+      execute: (id: string, params: any) => Promise<{ content: Array<{ type: string; text: string }>; details: unknown; terminate: boolean }>;
+    }): void;
   }
 }

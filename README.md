@@ -21,7 +21,7 @@ cp termux-panel.ts ~/.pi/agent/extensions/termux-panel.ts
 | --- | --- |
 | `/termux` | Open the panel menu |
 | `/battery` | Show battery status |
-| `/location` | Show location (network provider) |
+| `/location [provider]` | Show location (provider: `network` default · `gps` · `passive`; e.g. `/location gps`) |
 
 `/termux` is interactive only (`ctx.mode === tui` or `ctx.hasUI`); other commands return a warning when no UI is available.
 
@@ -102,4 +102,4 @@ Offline toolchain is vendored (`node_modules/typescript` + `@types/node`).
 - `002` Esc-back / showLines / safeParse — DONE
 - `003` Vendor offline toolchain — DONE
 
-Baseline sha1 of `termux-panel.ts`: `7c19b7583e90550b37a38574d1ca7434d3567c2f`.
+Baseline sha1 of `termux-panel.ts`: `d46448d7263ce08f62fc09e2d5d243148b49e88a`.

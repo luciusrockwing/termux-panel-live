@@ -11,7 +11,7 @@ Pi extension. Single-file Termux device dashboard. Keyboard-driven via Termux:AP
 
 ## Structure
 
-- `termux-panel.ts` — entire extension (~230 lines). Factory default-export, `ctx: any` throughout
+- `termux-panel.ts` — entire extension (~330 lines). Factory default-export; `ctx: any` at command-handler boundaries, typed `Ctx`/`Ui` internals
 - `pi-types.d.ts` — ambient shim for `@earendil-works/pi-coding-agent`. Global `.d.ts`, no `export {}` (else tsc treats as augmentation → fail)
 - `package.json` — `build: tsc --noEmit` only
 - `tsconfig.json` — `include: [termux-panel.ts, pi-types.d.ts]`, `types: [node]`
@@ -21,7 +21,7 @@ Pi extension. Single-file Termux device dashboard. Keyboard-driven via Termux:AP
 
 ```bash
 npm run build   # gate, exit 0, zero output
-sha1sum termux-panel.ts  # drift check, no git in repo
+sha1sum termux-panel.ts  # drift check
 ```
 
 ## Conventions
@@ -45,11 +45,11 @@ sha1sum termux-panel.ts  # drift check, no git in repo
 
 - Operator-side only. Copy `termux-panel.ts` → `~/.pi/agent/extensions/`, then `/reload` in Pi
 - Executors never touch `~/.pi/agent/extensions/`
-- Registered cmds: `/termux` (panel), `/battery`, `/location` (network provider)
+- Registered cmds: `/termux` (panel), `/battery`, `/location [provider]` (network default; gps|passive)
 
 ## Constraints
 
-- No git repo. Drift via sha1 quoted in plans. Verify before edit
+- Git repo present; `main` is push-protected — work on branches, operator opens PRs. Drift-via-sha1 check still stands; verify before edit
 - No cross-folder coupling. Never borrow `~/workspace/pi-termux-panel/node_modules`
 - Plans 001/002/003 DONE. 002 needs 001 build gate. Sequential only
 - Rejected (don't re-spec without ask): `ctx.ui.custom()` panel, SMS inbox/contacts, config wiring
