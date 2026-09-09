@@ -21,7 +21,7 @@ cp termux-panel.ts ~/.pi/agent/extensions/termux-panel.ts
 | --- | --- |
 | `/termux` | Open the panel menu |
 | `/battery` | Show battery status |
-| `/location` | Show location (network provider) |
+| `/location [provider]` | Show location (provider: `network` default · `gps` · `passive`; e.g. `/location gps`) |
 
 `/termux` is interactive only (`ctx.mode === tui` or `ctx.hasUI`); other commands return a warning when no UI is available.
 

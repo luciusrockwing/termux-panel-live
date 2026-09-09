@@ -277,12 +277,13 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("location", {
-    description: "Show current location (network provider)",
-    handler: async (_args, ctx) => {
+    description: "Show location (optional provider: network | gps | passive; default network)",
+    handler: async (args, ctx) => {
       if (!uiAlive(ctx)) return;
       await withErrors(ctx, async () => {
-        const lines = await locationText("network");
-        await showLines(ctx, "Location", lines);
+        const prov = ["network", "gps", "passive"].includes(args.trim()) ? args.trim() : "network";
+        const lines = await locationText(prov, prov === "gps" ? CONFIG.gpsTimeoutMs : CONFIG.timeoutMs);
+        await showLines(ctx, `Location (${prov})`, lines);
       });
     },
   });

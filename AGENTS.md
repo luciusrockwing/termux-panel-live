@@ -45,7 +45,7 @@ sha1sum termux-panel.ts  # drift check
 
 - Operator-side only. Copy `termux-panel.ts` → `~/.pi/agent/extensions/`, then `/reload` in Pi
 - Executors never touch `~/.pi/agent/extensions/`
-- Registered cmds: `/termux` (panel), `/battery`, `/location` (network provider)
+- Registered cmds: `/termux` (panel), `/battery`, `/location [provider]` (network default; gps|passive)
 
 ## Constraints
 
