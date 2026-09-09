@@ -12,15 +12,15 @@ specs live in `advisor-plans/` and must not be moved there.
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 | ------ | ------- | ---------- | -------- | ------------ | -------- |
-| 001 | Commit the uncommitted packaging changes | P1 | S | — | TODO |
-| 002 | Declare the vendored toolchain as devDependencies | P1 | S | 001 | TODO |
-| 003 | Verify and fix GPS-timeout error mapping | P2 | S | 001 | TODO |
-| 004 | Guard all command paths against headless invocation | P2 | S | 001 | TODO |
-| 005 | Type the agent-tool registration in the shim | P3 | S | 001 | TODO |
-| 006 | Clear the carried P2s (arrays, photo guard, single Map) | P3 | S | 001 | TODO |
-| 007 | Refresh stale docs (AGENTS.md, tech-stack, baseline) | P2 | S | 001,003,004,005,006 | TODO |
-| 008 | Accept an optional provider argument in /location | P3 | S | 001 | TODO |
-| 009 | Add a zero-dependency runtime smoke harness | P3 | M | 001 | TODO |
+| 001 | Commit the uncommitted packaging changes | P1 | S | — | DONE |
+| 002 | Declare the vendored toolchain as devDependencies | P1 | S | 001 | DONE |
+| 003 | Verify and fix GPS-timeout error mapping | P2 | S | 001 | DONE |
+| 004 | Guard all command paths against headless invocation | P2 | S | 001 | DONE |
+| 005 | Type the agent-tool registration in the shim | P3 | S | 001 | DONE |
+| 006 | Clear the carried P2s (arrays, photo guard, single Map) | P3 | S | 001 | DONE |
+| 007 | Refresh stale docs (AGENTS.md, tech-stack, baseline) | P2 | S | 001,003,004,005,006 | DONE |
+| 008 | Accept an optional provider argument in /location | P3 | S | 001 | DONE |
+| 009 | Add a zero-dependency runtime smoke harness | P3 | M | 001 | DONE |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
