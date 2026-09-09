@@ -289,8 +289,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   // Agent-callable read tool: headless-safe (no ctx.ui), reads only.
-  // Cast: type-lens ExtensionAPI shim lacks registerTool (see pi-types.d.ts).
-  (pi as any).registerTool({
+  pi.registerTool({
     name: "termux_read",
     description: "Read device info via Termux:API — no side effects, safe to call when the user is not present. Returns plain text lines.",
     parameters: {
