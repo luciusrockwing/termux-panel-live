@@ -12,6 +12,10 @@
   "scripts": {
     "build": "tsc --noEmit"
   },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "20.19.43"
+  },
   "files": [
     "termux-panel.ts",
     "pi-types.d.ts",
