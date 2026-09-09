@@ -10,7 +10,8 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -102,4 +102,4 @@ Offline toolchain is vendored (`node_modules/typescript` + `@types/node`).
 - `002` Esc-back / showLines / safeParse — DONE
 - `003` Vendor offline toolchain — DONE
 
-Baseline sha1 of `termux-panel.ts`: `e8d3764c4f0db8f7406f97aa81d7961dec503095`.
+Baseline sha1 of `termux-panel.ts`: `d46448d7263ce08f62fc09e2d5d243148b49e88a`.

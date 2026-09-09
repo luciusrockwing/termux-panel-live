@@ -1,0 +1,4 @@
+#!/bin/bash
+# echo args to stderr for provider assertion
+echo "[termux-location] args: $@" >&2
+echo '{"latitude": 1.0, "longitude": 2.0, "provider": "mock"}'
